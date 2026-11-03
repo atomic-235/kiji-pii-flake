@@ -1,0 +1,10 @@
+{
+  "revision": "a0c9dd2ff9023b63378f67bafa50e33925663219",
+  "files": {
+    "model_quantized.onnx": "sha256-tfMxE5GnRHD/JsW3AKQigy5dzbdP7cIFrVpo5w2/SHw=",
+    "tokenizer.json": "sha256-RRrnc0ZHnwQQIZAKwB+WPYoWW4fhU60vGr++PwxSLe0=",
+    "tokenizer_config.json": "sha256-UytbvBBzXQ7YTlYP+A4dibkhWe0qsBVJdxXu5Hf8LKw=",
+    "special_tokens_map.json": "sha256-XVtmLkIeqfrAdRdLsGiO4NlDFpmQC5BmKs1EsqNQUDo=",
+    "label_mappings.json": "sha256-JXUdYDu6KfejJp8499PkAncOoxzAzv9oqe7aee/OOqY="
+  }
+}
