@@ -12,6 +12,7 @@ repo="atomic-235/kiji-pii-flake"
 ref="${KIJI_PII_REF:-main}"
 config_dir="${XDG_CONFIG_HOME:-$HOME/.config}/opencode"
 plugins_dir="$config_dir/plugins"
+commands_dir="$config_dir/commands"
 target="$plugins_dir/kiji-pii.ts"
 
 cleanup_dir=""
@@ -54,6 +55,7 @@ install() {
 
   if [ -f "$here/plugin/index.ts" ]; then
     source_file="$here/plugin/index.ts"
+    source_command="$here/commands/kiji.md"
   else
     cleanup_dir="${TMPDIR:-/tmp}/kiji-pii-$$"
     mkdir -p "$cleanup_dir"
@@ -63,15 +65,18 @@ install() {
     tar -xzf "$archive" -C "$cleanup_dir"
     source_dir=$(find "$cleanup_dir" -mindepth 1 -maxdepth 1 -type d | head -n 1)
     source_file="$source_dir/plugin/index.ts"
+    source_command="$source_dir/commands/kiji.md"
     if [ ! -f "$source_file" ]; then
       echo "ERROR: downloaded archive did not contain plugin/index.ts" >&2
       exit 1
     fi
   fi
 
-  mkdir -p "$plugins_dir"
+  mkdir -p "$plugins_dir" "$commands_dir"
   cp "$source_file" "$target"
+  cp "$source_command" "$commands_dir/kiji.md"
   echo "Installed $target"
+  echo "Installed $commands_dir/kiji.md"
   echo
   echo "Next:"
   echo "  1. Start the Kiji PII service:"

@@ -53,6 +53,17 @@ export function parseCommand(text: string): Command | null {
   const normalized = (text ?? "").trim().toLowerCase().replace(/\s+/g, " ")
   if (!normalized) return null
 
+  // A markdown command body arrives as "Kiji PII masking: <arg>".
+  const template = /^kiji pii masking:[ \t]*(\S*)/.exec(normalized)
+  if (template) {
+    const argument = template[1]
+    if (!argument) return "toggle"
+    if (argument === "status") return "status"
+    if (argument === "on" || argument === "enable" || argument === "true" || argument === "start") return "on"
+    if (argument === "off" || argument === "disable" || argument === "false" || argument === "stop") return "off"
+    return null
+  }
+
   if (/^(enable|activate|turn on) kiji\b/.test(normalized)) return "on"
   if (/^(disable|deactivate|turn off|stop) kiji\b/.test(normalized)) return "off"
   if (/^turn kiji (on|off)\b/.test(normalized)) return normalized.includes(" kiji on") ? "on" : "off"
@@ -233,9 +244,16 @@ export default Plugin.define({
       const command = parseCommand(event.prompt.text)
       if (!command) return
 
-      if (command !== "status") await setEnabled(command === "toggle" ? !enabled : command === "on")
+      // Status is observational: rewrite the prompt so the model reports it verbatim,
+      // exactly like caveman does, and leave the flag alone.
+      if (command === "status") {
+        event.prompt.text =
+          `Report this status verbatim without changing mode: Kiji PII masking: ${enabled ? "on" : "off"}`
+        return
+      }
 
-      event.prompt.text = `${statusLine()} Reply with that one line and nothing else.`
+      // Mode changes are not rewritten: the model answers the user's message normally.
+      await setEnabled(command === "toggle" ? !enabled : command === "on")
     })
 
     await ctx.session.hook("http.request", async (event) => {

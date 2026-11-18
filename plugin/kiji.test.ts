@@ -21,6 +21,13 @@ describe("parseCommand", () => {
     expect(parseCommand("kiji off")).toBe("off")
   })
 
+  test("parses the markdown command body", () => {
+    expect(parseCommand("Kiji PII masking: on")).toBe("on")
+    expect(parseCommand("Kiji PII masking: off")).toBe("off")
+    expect(parseCommand("Kiji PII masking: status")).toBe("status")
+    expect(parseCommand("Kiji PII masking: ")).toBe("toggle")
+  })
+
   test("status", () => {
     expect(parseCommand("/kiji status")).toBe("status")
     expect(parseCommand("kiji status")).toBe("status")
