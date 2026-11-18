@@ -197,6 +197,7 @@ export default Plugin.define({
 
     // A real command, so the TUI hands the text to us instead of rejecting an unknown
     // slash command. `execute` runs without a model turn.
+    let commandRegistered = false
     try {
       await ctx.command.transform((editor) => {
         editor.add({
@@ -219,9 +220,13 @@ export default Plugin.define({
           },
         })
       })
+      commandRegistered = true
     } catch {
       // Older server without the command API: the prompt hook still handles text commands.
     }
+
+    // Fallback only: a registered command already reports through synthetic.
+    if (commandRegistered) return
 
     // Natural language ("enable kiji", "turn kiji off") arrives as ordinary text.
     await ctx.session.hook("prompt", async (event) => {
