@@ -1,0 +1,23 @@
+{
+  "name": "opencode-kiji-pii",
+  "version": "0.1.0",
+  "description": "Toggleable PII masking for OpenCode, backed by a local Kiji PII service",
+  "type": "module",
+  "exports": {
+    ".": "./index.ts"
+  },
+  "files": [
+    "index.ts"
+  ],
+  "keywords": [
+    "opencode",
+    "opencode-plugin",
+    "pii",
+    "redaction",
+    "privacy"
+  ],
+  "license": "MIT",
+  "dependencies": {
+    "@opencode/plugin": "latest"
+  }
+}
