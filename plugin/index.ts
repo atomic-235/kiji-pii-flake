@@ -188,20 +188,53 @@ export default Plugin.define({
   async setup(ctx) {
     enabled = (await ctx.storage.get(STORAGE_KEY)) === true
 
-    // Toggle commands never reach the model as a task: the prompt is replaced with the
-    // resulting state, so the reply is the status line and nothing is sent upstream.
+    const setEnabled = async (next: boolean) => {
+      enabled = next
+      await ctx.storage.set(STORAGE_KEY, enabled)
+    }
+
+    const statusLine = () => `Kiji PII masking is ${enabled ? "on" : "off"}.`
+
+    // A real command, so the TUI hands the text to us instead of rejecting an unknown
+    // slash command. `execute` runs without a model turn.
+    try {
+      await ctx.command.transform((editor) => {
+        editor.add({
+          name: "kiji",
+          description: "Toggle Kiji PII masking (on|off|status)",
+          execute: async ({ sessionID, prompt }) => {
+            const argument = (prompt?.text ?? "").trim()
+            const command =
+              parseCommand(argument) ?? parseCommand(`/kiji ${argument}`) ?? "toggle"
+
+            if (command !== "status") {
+              await setEnabled(command === "toggle" ? !enabled : command === "on")
+            }
+
+            try {
+              await ctx.session.synthetic({
+                sessionID,
+                payload: { text: statusLine() },
+                delivery: "queue",
+              } as any)
+            } catch {
+              // Feedback is best-effort; the flag change is the part that matters.
+            }
+          },
+        })
+      })
+    } catch {
+      // Older server without the command API: the prompt hook still handles text commands.
+    }
+
+    // Natural language ("enable kiji", "turn kiji off") arrives as ordinary text.
     await ctx.session.hook("prompt", async (event) => {
       const command = parseCommand(event.prompt.text)
       if (!command) return
 
-      if (command !== "status") {
-        enabled = command === "toggle" ? !enabled : command === "on"
-        await ctx.storage.set(STORAGE_KEY, enabled)
-      }
+      if (command !== "status") await setEnabled(command === "toggle" ? !enabled : command === "on")
 
-      event.prompt.text =
-        `Kiji PII masking is ${enabled ? "on" : "off"}. ` +
-        "Reply with that one line and nothing else."
+      event.prompt.text = `${statusLine()} Reply with that one line and nothing else.`
     })
 
     await ctx.session.hook("http.request", async (event) => {
